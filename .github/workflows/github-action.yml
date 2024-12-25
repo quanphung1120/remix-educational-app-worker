@@ -6,25 +6,25 @@ on:
       - master
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - run: npm ci
-      - run: npm run build
-      
   deploy:
     runs-on: ubuntu-latest
     name: Deploy
-    needs: build
     steps:
-      - uses: actions/checkout@v4
+      - name: Cancel Workflow Action
+        uses: styfle/cancel-workflow-action@0.12.1
+        
+      - name: Github Checkout
+        uses: actions/checkout@v4
+
+      - name: NPM or Yarn install with caching
+        uses: bahmutov/npm-install@v1.10.5
+
+      - name: 📦 Build
+        run: npm run build
+            
       - name: Build & Deploy Worker
         uses: cloudflare/wrangler-action@v3.13.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
